@@ -80,5 +80,21 @@ class Page {
 		$this->CI->load->view('admin/template/buttom',array_key_exists('buttom_param', $_params)?$_params['buttom_param']:'');
 		$this->CI->load->view('admin/template/footer', array_key_exists('footer_param', $_params)?$_params['footer_param']:NULL);
 	}
+
+	/**
+	 * 加载公共的头部
+	 * @param  boolean $is_return [description]
+	 * @return [type]             [description]
+	 */
+	public function common_head($is_return=false){
+		$this->CI->load->view('templates/temp_head', $params, false);
+	}
+
+	/**
+	 * 加载公共的底部，js脚本部分
+	 */
+	public function common_foot($_params = NULL, $is_return = false){
+		$this->CI->load->view('templates/common_foot', $params, false);
+	}
 }
 ?>

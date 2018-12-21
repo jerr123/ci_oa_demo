@@ -5,9 +5,29 @@ class Home extends CI_Controller {
 
     function __construct() {
         parent::__construct();
+        $this->isLogin();
+    }
+
+    function test () {
+
+// 创建一个cURL资源
+$ch = curl_init();
+
+// 设置URL和相应的选项
+curl_setopt($ch, CURLOPT_URL, "https://zoom.us/j/6563085781");
+curl_setopt($ch, CURLOPT_HEADER, 0);
+
+// 抓取URL并把它传递给浏览器
+curl_exec($ch);
+
+// 关闭cURL资源，并且释放系统资源
+curl_close($ch);
     }
 
     function index() {
+        // $this->session->USER = array(
+        //     'uid' => 1
+        //     );
         $this->home();
     }
 
@@ -15,7 +35,26 @@ class Home extends CI_Controller {
      * 首页
      */
     public function home () {
+        $this->load->model('home_model');
+        $data['opt_map'] = $this->home_model->get_opt_map();
         $this->page->page('home', array(
+            'head_params' => '',
+            'header_params' => array(
+                'css' => array(''),
+                'js' => array('')
+                ),
+            'params' => $data,
+            'foot_params' => '',
+            'footer_params' => ''
+            )
+        );
+    }
+
+    /**
+     * 首页
+     */
+    public function welcome () {
+        $this->page->tempPage('welcome', array(
             'head_params' => '',
             'header_params' => array(
                 'css' => array(''),
@@ -29,20 +68,468 @@ class Home extends CI_Controller {
     }
 
     /**
-     * 资讯
+     * 查看单个详细 ckxx
      */
-    public function articleList () {
-        $this->page->tempPage('article-list', array(
+    public function detailView () {
+        $id = $this->input->get_post('id');
+        $this->load->model('customer_model');
+        $this->load->model('log_model');
+        $this->load->model('option_model');
+        $this->load->model('home_model');
+        $data['data'] = $this->customer_model->getDetailAll($id);
+        $data['opts'] = $this->option_model->getFields();
+        $data['logs'] = $this->log_model->getLogsById($id);
+        $data['status_map'] = $this->home_model->get_status_map();
+        $this->page->tempPage('order-detail', array(
+            'head_params' => '',
+            'header_params' => array(
+                'css' => array('main'),
+                'js' => array('')
+                ),
+            'params' => $data,
+            'foot_params' => '',
+            'footer_params' => ''
+            ));
+    }
+
+    /**
+     * 创建为提交列表 权限识别码：cjwtj
+     */
+    public function subForReview () {
+        $per_page = 10;
+        $this->load->model('customer_model');
+        $rs = $this->customer_model->querySubForReviewList($per_page);
+        $this->load->library('pagination');
+
+        $config['base_url'] = site_url('Home/'.__FUNCTION__);
+        $config['total_rows'] = $rs['total'];
+        $config['per_page'] = $per_page;
+        $config['reuse_query_string'] = true;
+        $config['first_link'] = true;
+        $config['first_tag_open'] = '<li>';
+        $config['first_tag_close'] = '</li>';
+        $config['last_link'] = true;
+        $config['last_tag_open'] = '<li>';
+        $config['last_tag_close'] = '</li>';
+        $config['next_link'] = '&raquo;';
+        $config['next_tag_open'] = '<li>';
+        $config['next_tag_close'] = '</li>';
+        $config['prev_link'] = '&laquo;';
+        $config['prev_tag_open'] = '<li>';
+        $config['prev_tag_close'] = '</li>';
+        $config['num_tag_open'] = '<li>';
+        $config['num_tag_close'] = '</li>';
+        $config['cur_tag_open'] = '<li class="active"><a href="#">';
+        $config['cur_tag_close'] = '</li>';
+        
+        $this->pagination->initialize($config);
+        
+        $data['page'] =  $this->pagination->create_links();
+        $rule['startDate'] = $this->input->get_post('startDate');
+        $rule['endDate'] = $this->input->get_post('endDate');
+        $rule['c_name'] = $this->input->get_post('c_name');
+        $data['data'] = $rs['data'];
+        $info['total_page'] = $this->pagination->get_total_page();
+        $info['total'] = $rs['total'];
+        $info['per_page'] = $per_page;
+        $data['info'] = $info;
+        $data['rule'] = $rule;
+
+        $this->page->tempPage('subForReview-list', array(
+            'head_params' => '',
+            'header_params' => array(
+                'css' => array('main'),
+                'js' => array('')
+                ),
+            'params' => $data,
+            'foot_params' => '',
+            'footer_params' => ''
+            ));
+    }
+
+    /**
+     * 退回待修改 权限识别码：thdxg
+     */
+    public function returnToAlter () {
+        $per_page = 10;
+        $this->load->model('customer_model');
+        $rs = $this->customer_model->querySubForReviewList($per_page);
+        $this->load->library('pagination');
+        
+        $config['base_url'] = site_url('Home/'.__FUNCTION__);
+        $config['total_rows'] = $rs['total'];
+        $config['per_page'] = $per_page;
+        $config['reuse_query_string'] = true;
+        $config['first_link'] = true;
+        $config['first_tag_open'] = '<li>';
+        $config['first_tag_close'] = '</li>';
+        $config['last_link'] = true;
+        $config['last_tag_open'] = '<li>';
+        $config['last_tag_close'] = '</li>';
+        $config['next_link'] = '&raquo;';
+        $config['next_tag_open'] = '<li>';
+        $config['next_tag_close'] = '</li>';
+        $config['prev_link'] = '&laquo;';
+        $config['prev_tag_open'] = '<li>';
+        $config['prev_tag_close'] = '</li>';
+        $config['num_tag_open'] = '<li>';
+        $config['num_tag_close'] = '</li>';
+        $config['cur_tag_open'] = '<li class="active"><a href="#">';
+        $config['cur_tag_close'] = '</li>';
+        
+        $this->pagination->initialize($config);
+        
+        $data['page'] =  $this->pagination->create_links();
+        $rule['startDate'] = $this->input->get_post('startDate');
+        $rule['endDate'] = $this->input->get_post('endDate');
+        $rule['c_name'] = $this->input->get_post('c_name');
+        $data['data'] = $rs['data'];
+        $info['total_page'] = $this->pagination->get_total_page();
+        $info['total'] = $rs['total'];
+        $info['per_page'] = $per_page;
+        $data['info'] = $info;
+        $data['rule'] = $rule;
+
+        $this->page->tempPage('subForReview-list', array(
+            'head_params' => '',
+            'header_params' => array(
+                'css' => array('main'),
+                'js' => array('')
+                ),
+            'params' => $data,
+            'foot_params' => '',
+            'footer_params' => ''
+            ));
+    }
+
+
+    /**
+     * 审核中 权限识别码：shz
+     */
+    public function reviewingList () {
+        $per_page = 10;
+        $this->load->model('customer_model');
+        $rs = $this->customer_model->queryReviewingList($per_page);
+        $this->load->library('pagination');
+        
+        $config['base_url'] = site_url('Home/'.__FUNCTION__);
+        $config['total_rows'] = $rs['total'];
+        $config['per_page'] = $per_page;
+        $config['reuse_query_string'] = true;
+        $config['first_link'] = true;
+        $config['first_tag_open'] = '<li>';
+        $config['first_tag_close'] = '</li>';
+        $config['last_link'] = true;
+        $config['last_tag_open'] = '<li>';
+        $config['last_tag_close'] = '</li>';
+        $config['next_link'] = '&raquo;';
+        $config['next_tag_open'] = '<li>';
+        $config['next_tag_close'] = '</li>';
+        $config['prev_link'] = '&laquo;';
+        $config['prev_tag_open'] = '<li>';
+        $config['prev_tag_close'] = '</li>';
+        $config['num_tag_open'] = '<li>';
+        $config['num_tag_close'] = '</li>';
+        $config['cur_tag_open'] = '<li class="active"><a href="#">';
+        $config['cur_tag_close'] = '</li>';
+        
+        $this->pagination->initialize($config);
+        
+        $data['page'] =  $this->pagination->create_links();
+        $rule['startDate'] = $this->input->get_post('startDate');
+        $rule['endDate'] = $this->input->get_post('endDate');
+        $rule['c_name'] = $this->input->get_post('c_name');
+        $data['data'] = $rs['data'];
+        $info['total_page'] = $this->pagination->get_total_page();
+        $info['total'] = $rs['total'];
+        $info['per_page'] = $per_page;
+        $data['info'] = $info;
+        $data['rule'] = $rule;
+
+        $this->page->tempPage('reviewing-list', array(
+            'head_params' => '',
+            'header_params' => array(
+                'css' => array('main'),
+                'js' => array('')
+                ),
+            'params' => $data,
+            'foot_params' => '',
+            'footer_params' => ''
+            ));
+    }
+
+    /**
+     * 退回待修改 权限识别码：thxg
+     */
+    public function returnList () {
+        $per_page = 10;
+        $this->load->model('customer_model');
+        $rs = $this->customer_model->queryReturnList($per_page);
+        $this->load->library('pagination');
+        
+        $config['base_url'] = site_url('Home/'.__FUNCTION__);
+        $config['total_rows'] = $rs['total'];
+        $config['per_page'] = $per_page;
+        $config['reuse_query_string'] = true;
+        $config['first_link'] = true;
+        $config['first_tag_open'] = '<li>';
+        $config['first_tag_close'] = '</li>';
+        $config['last_link'] = true;
+        $config['last_tag_open'] = '<li>';
+        $config['last_tag_close'] = '</li>';
+        $config['next_link'] = '&raquo;';
+        $config['next_tag_open'] = '<li>';
+        $config['next_tag_close'] = '</li>';
+        $config['prev_link'] = '&laquo;';
+        $config['prev_tag_open'] = '<li>';
+        $config['prev_tag_close'] = '</li>';
+        $config['num_tag_open'] = '<li>';
+        $config['num_tag_close'] = '</li>';
+        $config['cur_tag_open'] = '<li class="active"><a href="#">';
+        $config['cur_tag_close'] = '</li>';
+        
+        $this->pagination->initialize($config);
+        
+        $data['page'] =  $this->pagination->create_links();
+        $rule['startDate'] = $this->input->get_post('startDate');
+        $rule['endDate'] = $this->input->get_post('endDate');
+        $rule['c_name'] = $this->input->get_post('c_name');
+        $data['data'] = $rs['data'];
+        $info['total_page'] = $this->pagination->get_total_page();
+        $info['total'] = $rs['total'];
+        $info['per_page'] = $per_page;
+        $data['info'] = $info;
+        $data['rule'] = $rule;
+
+        $this->page->tempPage('return-list', array(
+            'head_params' => '',
+            'header_params' => array(
+                'css' => array('main'),
+                'js' => array('')
+                ),
+            'params' => $data,
+            'foot_params' => '',
+            'footer_params' => ''
+            ));
+    }
+
+    /**
+     * 拒绝申请 权限识别码：jjsq
+     */
+    public function rejectList () {
+        $per_page = 10;
+        $this->load->model('customer_model');
+        $rs = $this->customer_model->queryRejectList($per_page);
+        $this->load->library('pagination');
+        
+        $config['base_url'] = site_url('Home/'.__FUNCTION__);
+        $config['total_rows'] = $rs['total'];
+        $config['per_page'] = $per_page;
+        $config['reuse_query_string'] = true;
+        $config['first_link'] = true;
+        $config['first_tag_open'] = '<li>';
+        $config['first_tag_close'] = '</li>';
+        $config['last_link'] = true;
+        $config['last_tag_open'] = '<li>';
+        $config['last_tag_close'] = '</li>';
+        $config['next_link'] = '&raquo;';
+        $config['next_tag_open'] = '<li>';
+        $config['next_tag_close'] = '</li>';
+        $config['prev_link'] = '&laquo;';
+        $config['prev_tag_open'] = '<li>';
+        $config['prev_tag_close'] = '</li>';
+        $config['num_tag_open'] = '<li>';
+        $config['num_tag_close'] = '</li>';
+        $config['cur_tag_open'] = '<li class="active"><a href="#">';
+        $config['cur_tag_close'] = '</li>';
+        
+        $this->pagination->initialize($config);
+        
+        $data['page'] =  $this->pagination->create_links();
+        $rule['startDate'] = $this->input->get_post('startDate');
+        $rule['endDate'] = $this->input->get_post('endDate');
+        $rule['c_name'] = $this->input->get_post('c_name');
+        $data['data'] = $rs['data'];
+        $info['total_page'] = $this->pagination->get_total_page();
+        $info['total'] = $rs['total'];
+        $info['per_page'] = $per_page;
+        $data['info'] = $info;
+        $data['rule'] = $rule;
+
+        $this->page->tempPage('order/reject-list', array(
+            'head_params' => '',
+            'header_params' => array(
+                'css' => array('main'),
+                'js' => array('')
+                ),
+            'params' => $data,
+            'foot_params' => '',
+            'footer_params' => ''
+            ));
+    }
+
+    /**
+     * 通过申请待请款 权限识别码：tgdqk
+     */
+    public function passList () {
+        $per_page = 10;
+        $this->load->model('customer_model');
+        $func = 'query'.ucfirst(__FUNCTION__);
+        $rs = $this->customer_model->$func($per_page);
+        $this->load->library('pagination');
+        
+        $config['base_url'] = site_url('Home/'.__FUNCTION__);
+        $config['total_rows'] = $rs['total'];
+        $config['per_page'] = $per_page;
+        $config['reuse_query_string'] = true;
+        $config['first_link'] = true;
+        $config['first_tag_open'] = '<li>';
+        $config['first_tag_close'] = '</li>';
+        $config['last_link'] = true;
+        $config['last_tag_open'] = '<li>';
+        $config['last_tag_close'] = '</li>';
+        $config['next_link'] = '&raquo;';
+        $config['next_tag_open'] = '<li>';
+        $config['next_tag_close'] = '</li>';
+        $config['prev_link'] = '&laquo;';
+        $config['prev_tag_open'] = '<li>';
+        $config['prev_tag_close'] = '</li>';
+        $config['num_tag_open'] = '<li>';
+        $config['num_tag_close'] = '</li>';
+        $config['cur_tag_open'] = '<li class="active"><a href="#">';
+        $config['cur_tag_close'] = '</li>';
+        
+        $this->pagination->initialize($config);
+        
+        $data['page'] =  $this->pagination->create_links();
+        $rule['startDate'] = $this->input->get_post('startDate');
+        $rule['endDate'] = $this->input->get_post('endDate');
+        $rule['c_name'] = $this->input->get_post('c_name');
+        $data['data'] = $rs['data'];
+        $info['total_page'] = $this->pagination->get_total_page();
+        $info['total'] = $rs['total'];
+        $info['per_page'] = $per_page;
+        $data['info'] = $info;
+        $data['rule'] = $rule;
+
+        $this->page->tempPage('pass-list', array(
+            'head_params' => '',
+            'header_params' => array(
+                'css' => array('main'),
+                'js' => array('')
+                ),
+            'params' => $data,
+            'foot_params' => '',
+            'footer_params' => ''
+            ));
+    }
+
+    /**
+     * 分页查询统一渲染
+     * @param Array $config 配置
+     */
+    public function displayPage ( $act, $state, $config = array()) {
+        $per_page = 10;
+        $this->load->model('customer_model');
+        $func = 'query'.ucfirst($act);
+        $rs = $this->customer_model->queryByPage($per_page, $state);
+        $this->load->library('pagination');
+        
+        $config['base_url'] = site_url('Home/'.$act);
+        $config['total_rows'] = $rs['total'];
+        $config['per_page'] = $per_page;
+        $config['reuse_query_string'] = true;
+        $config['first_link'] = true;
+        $config['first_tag_open'] = '<li>';
+        $config['first_tag_close'] = '</li>';
+        $config['last_link'] = true;
+        $config['last_tag_open'] = '<li>';
+        $config['last_tag_close'] = '</li>';
+        $config['next_link'] = '&raquo;';
+        $config['next_tag_open'] = '<li>';
+        $config['next_tag_close'] = '</li>';
+        $config['prev_link'] = '&laquo;';
+        $config['prev_tag_open'] = '<li>';
+        $config['prev_tag_close'] = '</li>';
+        $config['num_tag_open'] = '<li>';
+        $config['num_tag_close'] = '</li>';
+        $config['cur_tag_open'] = '<li class="active"><a href="#">';
+        $config['cur_tag_close'] = '</li>';
+        
+        $this->pagination->initialize($config);
+        
+        $data['page'] =  $this->pagination->create_links();
+        $rule['startDate'] = $this->input->get_post('startDate');
+        $rule['endDate'] = $this->input->get_post('endDate');
+        $rule['c_name'] = $this->input->get_post('c_name');
+        $data['data'] = $rs['data'];
+        $info['total_page'] = $this->pagination->get_total_page();
+        $info['total'] = $rs['total'];
+        $info['per_page'] = $per_page;
+        $data['info'] = $info;
+        $data['rule'] = $rule;
+
+        $this->page->tempPage('order/'.str_replace('List', '-list', $act).'.php', array(
+            'head_params' => '',
+            'header_params' => array(
+                'css' => array('main'),
+                'js' => array('')
+                ),
+            'params' => $data,
+            'foot_params' => '',
+            'footer_params' => ''
+            ));
+    }
+
+    public function cancelList () {
+        $this->displayPage(__FUNCTION__, 4);
+    }
+
+    public function firstList () {
+        $this->displayPage(__FUNCTION__, 6);
+    }
+
+    public function reqPayList () {
+        $this->displayPage(__FUNCTION__, 7);
+    }
+
+    public function payedList () {
+        $this->displayPage(__FUNCTION__, 8);
+    }
+
+    /**
+     * 添加(录入)客户界面
+     * 权限识别码：tjkh
+     */
+    public function CustomerAdd () {
+        $id = intval($this->input->post_get('id'));
+        if ($id != '') {
+            $this->load->model('customer_model');
+            $data['data'] = (array)$this->customer_model->get($id);
+            $data['title'] = '编辑申请单';
+        }else{
+            $data['title'] = '创建申请单';
+        }
+        $this->load->model('option_model');
+        $data['opts'] = $this->option_model->getFields();
+        $this->page->tempPage('order/order-add', array(
             'head_params' => '',
             'header_params' => array(
                 'css' => array(''),
                 'js' => array('')
                 ),
-            'params' => '',
+            'params' => $data,
             'foot_params' => '',
             'footer_params' => ''
             ));
+
     }
+
+    public function exeCustomerAdd () {
+        
+    }
+
+
 
     /**
      * about us 关于我们

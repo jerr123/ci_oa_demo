@@ -109,15 +109,15 @@ class CI_Controller {
 	/**
 	 * isAdminLogin()
 	 */
-	public function isAdminLogin () {
-		$admin = $this->session->HSADMIN;
+	public function isLogin () {
+		$admin = $this->session->USER;
 		if (!$admin) {
-			header("Location:".site_url('admin/Login/index'));
+			header("Location:".site_url('Login/index'));
 		}
 	}
 
-	public function isAjaxAdminLogin () {
-		$admin = $this->session->HSADMIN;
+	public function isAjaxLogin () {
+		$admin = $this->session->USER;
 		if (!$admin) {
 			header("Content-Type:text/json");
 			die('{"code":-10}');
